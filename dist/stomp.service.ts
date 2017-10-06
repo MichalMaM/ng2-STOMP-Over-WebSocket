@@ -72,8 +72,15 @@ export class StompService {
 		this.status = 'CONNECTING';
 
 		//Prepare Client
-		this.socket = new SockJS(this.config.host);
-		this.stomp = Stomp.over(this.socket);
+		if (this.config.host && 
+				(this.config.host.startsWith('ws://') ||
+				this.config.host.startsWith('wss://'))
+		) {
+				this.stomp = Stomp.client(this.config.host);
+		} else {
+				this.socket = new SockJS(this.config.host);
+				this.stomp = Stomp.over(this.socket);
+		}
 
 		this.stomp.heartbeat.outgoing = this.config.heartbeatOut || 10000;
 		this.stomp.heartbeat.incoming = this.config.heartbeatIn || 10000;
@@ -92,7 +99,7 @@ export class StompService {
 		return new Promise(
 	 	  (resolve, reject) => this.resolveConPromise = resolve
 	 	);
-		
+
 	}
 
 
@@ -125,7 +132,7 @@ export class StompService {
 	}
 
 	/**
-	 * Subscribe 
+	 * Subscribe
 	 */
 	public subscribe(destination:string, callback:any, headers?:Object){
 		headers = headers || {};
@@ -145,7 +152,7 @@ export class StompService {
 
 
 	/**
-	 * Send 
+	 * Send
 	 */
 	public send(destination:string, body:any, headers?:Object):void {
 		let message = JSON.stringify(body);
